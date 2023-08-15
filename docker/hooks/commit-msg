@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+LC_ALL=C
+
+source .env
+
+current_branch="$(git rev-parse --abbrev-ref HEAD)"
+branch_dir_regex='(feature|bugfix|hotfix)'
+task_regex="(${JIRA_PROJECT_NAME}-[0-9]+|merge)"
+branch_regex="(${branch_dir_regex}\/${task_regex})"
+commit_regex="^${task_regex}"
+current_task_b=$(echo "$current_branch" | grep -ioE "$task_regex")
+current_task_m=$(grep -ioE "$commit_regex" "$1")
+err_base='.git/hooks/commit-msg: Коммит отменён!'
+
+# Проверять только в ветках фичей и багах
+if grep -iqE "$branch_regex" <<< "$current_branch"; then
+
+    # Проверка на наличие номера задачи
+    if ! grep -iqE "$commit_regex" "$1"; then
+        error_msg="$err_base Укажите номер задачи в начале сообщения или Merge"
+        echo "$error_msg" >&2
+        exit 1
+    fi
+
+    # Проверка на соответствие задачи своей ветке
+    if [ "${current_task_b^^}" == "${current_task_m^^}" ] || [ "${current_task_m^^}" == "MERGE" ];
+    then
+        exit 0
+    else
+        error_msg="$err_base Ветка $current_branch не должна содержать чужой коммит $current_task_m"
+        echo "$error_msg" >&2
+        exit 1
+    fi
+
+fi
+
+exit 0

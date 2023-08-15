@@ -1,0 +1,14 @@
+.env
+.php-cs-fixer.cache
+.idea
+.vscode
+.history
+
+/www/*
+!/www/.gitkeep
+
+/docker/dumps/*
+!/docker/dumps/.gitkeep
+
+/docker/bash_history/*
+!/docker/bash_history/.gitkeep

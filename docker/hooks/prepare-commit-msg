@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+LC_ALL=C
+
+source .env
+
+current_branch="$(git rev-parse --abbrev-ref HEAD)"
+branch_dir_regex='(feature|bugfix|hotfix)'
+task_regex="(${JIRA_PROJECT_NAME}-[0-9]+|merge)"
+branch_regex="(${branch_dir_regex}\/${task_regex})"
+commit_regex="${task_regex}"
+current_task_b=$(echo "$current_branch" | grep -ioE "$task_regex")
+
+# Проверять только в ветках фичей и багах
+if grep -iqE "$branch_regex" <<< "$current_branch"; then
+
+    # Проверка на наличие номера задачи
+    if ! grep -iqE "$commit_regex" "$1"; then
+        echo "$current_task_b $(cat $1)" > $1
+        exit 0
+    fi
+
+fi
+
+exit 0

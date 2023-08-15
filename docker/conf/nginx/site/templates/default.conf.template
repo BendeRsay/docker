@@ -1,0 +1,105 @@
+# Default website
+server {
+
+    listen       ${NGINX_PORT};
+    listen       ${NGINX_PORT_SSL} ssl http2;
+
+    ssl_certificate     /root/mkcert/build-ca.crt;
+    ssl_certificate_key /root/mkcert/${NGINX_HOST}-key.pem;
+
+    server_name  ${NGINX_HOST};
+    index index.php index.html;
+    root /var/www/html;
+
+     # If they come here using HTTP, bounce them to the correct scheme
+    error_page 497 https://$server_name:$server_port$request_uri;
+
+    location ~* \.(jpg|jpeg|png|tiff|gif|webp|xml|html|yml|ogg|ogv|svg|svgz|eot|otf|woff|woff2|mp4|ttf|rss|atom|ico|zip|tgz|gz|rar|bz2|doc|xls|exe|ppt|tar|mid|midi|wav|rtf|pdf|txt|js|css|bmp|pnm|pbm|ppm)$ {
+	access_log off;
+	expires 97d;
+    }
+
+    # ht(passwd|access)
+    location ~* /\.ht  { deny all; }
+
+    # repositories
+    location ~* \.(hg|svn|git|bzr)$ { deny all; }
+
+    # use the file system to access files outside the site (cache)
+    location ~* /\.\./ { deny all; }
+    location ~* ^/bitrix/html_pages/\.config\.php { deny all; }
+    location ~* ^/bitrix/html_pages/\.enabled { deny all; }
+
+    # Intenal locations
+    location ^~ /upload/support/not_image   { internal; }
+
+    # Player options, disable no-sniff
+    location ~* ^/bitrix/components/bitrix/player/mediaplayer/player$ {
+        add_header Access-Control-Allow-Origin *;
+    }
+
+    # Accept access for merged css and js
+    location ~* ^/bitrix/cache/(css/.+\.css|js/.+\.js)$ {
+        expires 30d;
+        error_page 404 /404.html;
+    }
+
+    # Disable access for other assets in cache location
+    location ~* ^/bitrix/cache              { deny all; }
+
+    # Static content
+    location ~* ^/(upload|bitrix/images|bitrix/tmp) {
+        expires 30d;
+    }
+
+    location ~ \.php$ {
+        location ~* /\.\./ { internal; }
+        location ~ /\.[^/]+$ { internal; }
+        location ~* ^/upload/1c_[^/]+/ { internal; }
+        location ~* ^/(bitrix/(cache|images|tmp)|upload)/ { internal; }
+        location ~* ^/bitrix/(footer|header|license_key)\.php$ { internal; }
+        location ~* ^/(bitrix|local)/components/(.*)/(.*)/(class|component)\.php$ { internal; }
+        location ~* ^/(bitrix|local)/(backup|blocks|bx_cloud_upload|local_cache|module|modules|managed_cache|php_interface|public|stack_cache)/ { internal; }
+
+        try_files $uri =404;
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        fastcgi_pass php:9000;
+        fastcgi_index index.php;
+        fastcgi_read_timeout 60;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_param PATH_INFO $fastcgi_path_info;
+        fastcgi_param REMOTE_ADDR $http_x_real_ip;
+        fastcgi_param REMOTE_USER $http_authorization;
+
+        # параметры https
+        fastcgi_param HTTPS on;
+        fastcgi_param HTTP_HTTPS on;
+    }
+
+    if ($request_uri ~ ^(.*)/index.(html|php)) { return 301 $1/$is_args$args; }
+
+    # Cache location: composite and general site
+    location ~* @.*\.html$ {
+        internal;
+        # disable browser cache, php manage file
+        expires -1y;
+        add_header X-Bitrix-Composite "Nginx (file)";
+    }
+
+    location / {
+        location ~* ^/(bitrix|local)/(backup|blocks|bx_cloud_upload|local_cache|module|modules|managed_cache|php_interface|public|stack_cache)/ { internal; }
+        location ~ /\.[^/]+$ { internal; }
+        location ~* ^/upload/1c_[^/]+/ { internal; }
+
+        set $basepath_cache "/bitrix/html_pages";
+        set $i "index@";
+
+        # Try different variations of cached html first
+        try_files $basepath_cache/$host$uri$i${args}.html$usecache
+                  $basepath_cache/$host$uri$i${args}=.html$usecache
+                  $basepath_cache/$host$uri/$i${args}.html$usecache
+                  $basepath_cache/$host$uri/$i${args}=.html$usecache
+                  $uri $uri/ /bitrix/routing_index.php$is_args$args;
+    }
+}

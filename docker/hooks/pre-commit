@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+LC_ALL=C
+
+source .env
+
+current_branch="$(git rev-parse --abbrev-ref HEAD)"
+task_regex="${JIRA_PROJECT_NAME}-[0-9]+"
+branch_regex="^HEAD|(feature|bugfix|release|hotfix)\/${task_regex}"
+err_base='.git/hooks/pre-commit: Коммит отменён!'
+message="$err_base Не верное имя ветки $current_branch. Не соответствует формату: $branch_regex. Переименуйте и попробуйте снова."
+
+if ! grep -iqE "$branch_regex" <<< "$current_branch"; then
+    echo "$message"
+    exit 1
+fi
+
+exit 0
