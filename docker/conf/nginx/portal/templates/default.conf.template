@@ -99,7 +99,7 @@ server {
 
         try_files $uri =404;
         fastcgi_split_path_info ^(.+\.php)(/.+)$;
-        fastcgi_pass php:9000;
+        fastcgi_pass ${COMPOSE_PROJECT_NAME}-php:9000;
         fastcgi_index index.php;
         fastcgi_read_timeout 60;
         include fastcgi_params;

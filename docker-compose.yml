@@ -20,6 +20,11 @@ services:
       NGINX_HOST: ${NGINX_HOST}
       NGINX_PORT: ${NGINX_PORT}
       NGINX_PORT_SSL: ${NGINX_PORT_SSL}
+      COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
+    networks:
+      default:
+        aliases:
+          - ${NGINX_HOST}
 
   php:
     build: 
