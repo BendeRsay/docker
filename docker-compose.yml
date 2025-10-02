@@ -17,6 +17,7 @@ services:
       - "${NGINX_PORT}:${NGINX_PORT}"
       - "${NGINX_PORT_SSL}:${NGINX_PORT_SSL}"
     environment:
+      TZ: 'Europe/Moscow'
       NGINX_HOST: ${NGINX_HOST}
       NGINX_PORT: ${NGINX_PORT}
       NGINX_PORT_SSL: ${NGINX_PORT_SSL}
@@ -97,7 +98,7 @@ services:
       TZ: 'Europe/Moscow'
     volumes:
       - volume-mkcert:/root/mkcert
-      - volume-ca-certificates:/usr/local/share/ca-certificates
+      - volume-ca-certificates:/root/.local/share/mkcert
 
   push-server-sub:
     build: ./docker/images/push-server

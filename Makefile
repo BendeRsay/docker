@@ -52,7 +52,7 @@ sethost: #установим host ip в .hosts контейнера php
 	docker exec -it --user root ${COMPOSE_PROJECT_NAME}-php bash -c "echo '${NGINX_IP} ${NGINX_HOST}' >> /etc/hosts"
 
 sertadd: #Обновим общесистемный список доверенных CA контейнера php
-	docker exec -it --user root ${COMPOSE_PROJECT_NAME}-php bash -c "update-ca-certificates"
+	docker exec -it --user root ${COMPOSE_PROJECT_NAME}-php bash -c "cat /usr/local/share/ca-certificates/rootCA.pem > /usr/local/share/ca-certificates/rootmkcertCA.crt && update-ca-certificates"
 
 ##
 ##╔                           ╗
