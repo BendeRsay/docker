@@ -43,6 +43,7 @@ services:
       NGINX_HOST: ${NGINX_HOST}
       XDEBUG_CONFIG: client_host=${XDEBUG_CLIENT_HOST} client_port=${XDEBUG_PORT}
       XDEBUG_TRIGGER: ${XDEBUG_TRIGGER}
+      PHP_IDE_CONFIG: ${PHP_IDE_CONFIG}
     depends_on:
       - memcached
       - mailhog
