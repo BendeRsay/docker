@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y \
         pkg-config \
         nmap \
         htop \
+        msmtp \
         git \
         git-lfs
 
@@ -44,14 +45,8 @@ RUN if [ "$COMPOSE_PROFILES" = "portal" ]; then \
         && apt-get clean && rm -rf /var/lib/apt/lists/* ; \
     fi
 
-# Настройки почтовика
-RUN if [ $(uname -m) = "x86_64" ]; then \
-        curl -Lsf 'https://storage.googleapis.com/golang/go1.17.4.linux-amd64.tar.gz' | tar -C '/usr/local' -xvzf -; \
-    else \
-        curl -Lsf 'https://storage.googleapis.com/golang/go1.17.4.linux-arm64.tar.gz' | tar -C '/usr/local' -xvzf -; \
-    fi
-ENV PATH /usr/local/go/bin:$PATH
-RUN go get github.com/mailhog/mhsendmail && cp /root/go/bin/mhsendmail /usr/bin/mhsendmail
+# Копируем msmtprc конфиг
+COPY ./msmtprc /etc/msmtprc
 
 # Добавим свой php.ini, можем в нем определять свои значения конфига
 COPY ./php.ini /usr/local/etc/php/conf.d/40-custom.ini
