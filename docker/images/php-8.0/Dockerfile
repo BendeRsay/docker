@@ -1,4 +1,4 @@
-FROM php:8.0-fpm-bullseye
+FROM php:8.0-fpm-trixie
 
 # нужные пакеты
 RUN apt-get update && apt-get install -y \
